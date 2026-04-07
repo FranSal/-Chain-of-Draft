@@ -19,7 +19,7 @@ Chain of Draft (Xu et al., 2025) is a prompting strategy inspired by how humans 
 
 ## Live demo
 
-**[→ Try the CoD Prompt Studio](https://YOUR_USERNAME.github.io/chain-of-draft/)**
+**[→ Try the CoD Prompt Studio](https://fransal.github.io/-Chain-of-Draft/)**
 
 An interactive tool to generate CoD prompts and compare CoT vs CoD in real time. No install required — runs entirely in your browser.
 
