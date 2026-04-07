@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoD Prompt Studio — Chain of Draft</title>
+<meta name="description" content="Generate Chain of Draft prompts that achieve the same accuracy as Chain of Thought with 80-92% fewer tokens.">
+<meta property="og:title" content="CoD Prompt Studio">
+<meta property="og:description" content="Think step by step, but only keep a minimum draft. 80-92% token savings.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#fafaf8;--bg2:#f2f1ed;--bg3:#eae9e4;
+  --fg:#1a1a18;--fg2:#6b6a65;--fg3:#9c9b96;
+  --accent:#1d9e75;--accent-bg:#e1f5ee;--accent-dark:#0f6e56;
+  --amber:#ba7517;--amber-bg:#faeeda;--amber-dark:#854f0b;
+  --red:#a32d2d;--red-bg:#fcebeb;
+  --purple:#534ab7;--purple-bg:#eeedfe;
+  --border:#e0dfda;--border2:#cccbc5;
+  --radius:10px;--radius-lg:14px;
+  --font:'DM Sans',system-ui,sans-serif;
+  --mono:'DM Mono','SF Mono',monospace;
+  --shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.03);
+}
+
+body{font-family:var(--font);background:var(--bg);color:var(--fg);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+.container{max-width:780px;margin:0 auto;padding:2rem 1.5rem 4rem}
+@media(max-width:600px){.container{padding:1.5rem 1rem 3rem}}
+
+.header{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+.header h1{font-size:1.6rem;font-weight:600;letter-spacing:-0.02em;margin-bottom:0.25rem}
+.header p{font-size:0.9rem;color:var(--fg2)}
+.header .links{margin-top:0.75rem;display:flex;gap:1rem;font-size:0.8rem}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;background:var(--accent-bg);color:var(--accent-dark);border-radius:20px;font-size:0.75rem;font-weight:500}
+
+.section-label{font-size:0.78rem;font-weight:600;color:var(--fg2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.6rem}
+
+.type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:1.5rem}
+.type-btn{padding:14px 12px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;text-align:center;transition:all 0.15s;font-family:var(--font)}
+.type-btn:hover{border-color:var(--border2);background:var(--bg2)}
+.type-btn.active{border-color:var(--accent);background:var(--accent-bg)}
+.type-btn .icon{font-size:1.3rem;margin-bottom:4px}
+.type-btn .label{font-size:0.85rem;font-weight:500}
+.type-btn .desc{font-size:0.72rem;color:var(--fg2);margin-top:2px}
+
+.examples-section{margin-bottom:1.5rem}
+.example-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-row input[type=range]{width:100px;accent-color:var(--accent)}
+.slider-row span{font-size:0.8rem;font-weight:500;min-width:18px;text-align:center}
+
+.example-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:6px;font-size:0.82rem}
+.example-card .ex-label{font-size:0.72rem;font-weight:600;color:var(--fg2);margin-bottom:4px}
+.example-card .ex-q{line-height:1.5;margin-bottom:6px}
+.toggle-btn{background:none;border:none;color:var(--accent);font-size:0.78rem;cursor:pointer;padding:0;font-family:var(--font)}
+.toggle-btn:hover{text-decoration:underline}
+.comparison-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+@media(max-width:540px){.comparison-grid{grid-template-columns:1fr}}
+.comp-box{background:var(--bg2);padding:10px 12px;border-radius:8px}
+.comp-box .comp-label{font-size:0.7rem;font-weight:600;margin-bottom:4px}
+.comp-box.cot .comp-label{color:var(--amber-dark)}
+.comp-box.cod .comp-label{color:var(--accent-dark)}
+.comp-box pre{white-space:pre-wrap;font-family:var(--mono);font-size:0.78rem;line-height:1.5;margin:0;color:var(--fg)}
+
+textarea{width:100%;font-family:var(--font);font-size:0.9rem;line-height:1.6;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--bg);color:var(--fg);resize:vertical;transition:border-color 0.15s}
+textarea:focus{outline:none;border-color:var(--accent)}
+textarea::placeholder{color:var(--fg3)}
+
+.actions{display:flex;gap:8px;margin:1.5rem 0 2rem}
+.btn{flex:1;padding:11px 16px;border-radius:var(--radius);font-family:var(--font);font-size:0.88rem;font-weight:500;cursor:pointer;transition:all 0.15s;border:none}
+.btn:disabled{opacity:0.4;cursor:default}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover:not(:disabled){background:var(--accent-dark)}
+.btn-secondary{background:var(--bg);color:var(--fg);border:1.5px solid var(--border)}
+.btn-secondary:hover:not(:disabled){background:var(--bg2);border-color:var(--border2)}
+
+.output-section{margin-bottom:2rem}
+.output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.output-header h2{font-size:1rem;font-weight:600}
+.copy-btn{font-size:0.78rem;padding:4px 14px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--fg2);cursor:pointer;font-family:var(--font);transition:all 0.12s}
+.copy-btn:hover{background:var(--bg2);color:var(--fg)}
+.copy-btn.copied{background:var(--accent-bg);color:var(--accent-dark);border-color:var(--accent)}
+
+.prompt-block{background:var(--bg2);border-radius:var(--radius-lg);padding:18px 22px;font-family:var(--mono);font-size:0.8rem;line-height:1.7;white-space:pre-wrap;max-height:420px;overflow-y:auto;border:1px solid var(--border)}
+.prompt-block .tag{font-weight:500}
+.prompt-block .tag-system{color:var(--amber)}
+.prompt-block .tag-examples{color:var(--purple)}
+.prompt-block .tag-query{color:var(--accent)}
+
+.api-section{margin-bottom:2rem;padding:18px 22px;background:var(--bg2);border-radius:var(--radius-lg);border:1px solid var(--border)}
+.api-section summary{font-size:0.88rem;font-weight:500;cursor:pointer;color:var(--fg);list-style:none;display:flex;align-items:center;gap:8px}
+.api-section summary::before{content:'▸';font-size:0.8rem;transition:transform 0.15s}
+.api-section[open] summary::before{transform:rotate(90deg)}
+.api-key-row{display:flex;gap:8px;margin-top:14px;align-items:center}
+.api-key-row input{flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:0.82rem;background:var(--bg);color:var(--fg)}
+.api-key-row input:focus{outline:none;border-color:var(--accent)}
+.api-note{font-size:0.75rem;color:var(--fg2);margin-top:8px;line-height:1.5}
+
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:540px){.metrics-grid{grid-template-columns:repeat(2,1fr)}}
+.metric{background:var(--bg);border-radius:var(--radius);padding:12px 14px;border:1px solid var(--border)}
+.metric .metric-label{font-size:0.72rem;color:var(--fg2)}
+.metric .metric-value{font-size:1.4rem;font-weight:600;margin-top:2px}
+.metric.savings{background:var(--accent-bg);border-color:transparent}
+.metric.savings .metric-value{color:var(--accent-dark)}
+
+.bar-row{margin-bottom:6px}
+.bar-label{display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:3px}
+.bar-label span:first-child{color:var(--fg2)}
+.bar-label span:last-child{font-weight:500}
+.bar-track{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.6s ease}
+.bar-fill.cot{background:var(--amber)}
+.bar-fill.cod{background:var(--accent)}
+
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:540px){.results-grid{grid-template-columns:1fr}}
+.result-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px}
+.result-card .result-label{font-size:0.82rem;font-weight:600;margin-bottom:8px}
+.result-card.cot .result-label{color:var(--amber-dark)}
+.result-card.cod .result-label{color:var(--accent-dark)}
+.result-card pre{white-space:pre-wrap;font-family:var(--mono);font-size:0.82rem;line-height:1.6;margin:0;color:var(--fg)}
+.result-card .loading{color:var(--fg3);font-style:italic;font-family:var(--font)}
+
+.error-box{padding:12px 16px;background:var(--red-bg);color:var(--red);border-radius:var(--radius);font-size:0.82rem;margin-bottom:1rem}
+
+.footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);font-size:0.78rem;color:var(--fg2);line-height:1.6}
+.footer strong{color:var(--fg);font-weight:500}
+
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite;margin-right:6px;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="container" id="app">
+
+<div class="header">
+  <h1>CoD prompt studio</h1>
+  <p>Generate Chain of Draft prompts — same accuracy, 80–92% fewer tokens</p>
+  <div class="links">
+    <a href="https://arxiv.org/abs/2502.18600" target="_blank">Paper (Xu et al., 2025)</a>
+    <a href="https://github.com/sileix/chain-of-draft" target="_blank">Original code</a>
+    <span class="badge">~92% token savings</span>
+  </div>
+</div>
+
+<div class="section-label">Reasoning type</div>
+<div class="type-grid" id="type-grid"></div>
+
+<div class="examples-section" id="examples-section"></div>
+
+<div class="section-label">Your problem</div>
+<textarea id="query" rows="3" placeholder="E.g.: A farmer has 17 sheep. All but 9 die. How many sheep are left?"></textarea>
+
+<div class="actions">
+  <button class="btn btn-primary" id="btn-generate" disabled>Generate CoD prompt</button>
+  <button class="btn btn-secondary" id="btn-compare" disabled>Compare CoT vs CoD ↗</button>
+</div>
+
+<div id="output-area"></div>
+
+<details class="api-section" id="api-section">
+  <summary>API key for live comparison (optional)</summary>
+  <div class="api-key-row">
+    <input type="password" id="api-key" placeholder="sk-ant-api03-...">
+  </div>
+  <div class="api-note">
+    Your key stays in your browser (localStorage). It's sent directly to api.anthropic.com — never to any other server.
+    Required only for the "Compare" feature. The prompt generator works without it.
+  </div>
+</details>
+
+<div class="footer">
+  <strong>About CoD</strong> — Chain of Draft (Xu et al., 2025) limits each reasoning step to ~5 words, matching Chain of Thought accuracy with up to 92% fewer tokens. The key insight: few-shot examples are critical — without them, performance drops significantly. This tool generates optimized CoD prompts with domain-specific examples.
+</div>
+
+</div>
+
+<script>
+const TASK_TYPES = {
+  arithmetic: {
+    label: "Arithmetic", desc: "Math, calculations", icon: "∑",
+    examples: [
+      { q: "Jason had 20 lollipops. He gave Denny some lollipops. Now Jason has 12 lollipops. How many lollipops did Jason give to Denny?",
+        cot: "Let's think step by step:\n1. Initially, Jason had 20 lollipops.\n2. After giving some to Denny, Jason now has 12.\n3. We need the difference: 20 - 12 = 8\nTherefore, Jason gave 8 lollipops to Denny.\n#### 8",
+        cod: "20 - 12 = 8. #### 8" },
+      { q: "There are 15 trees in the grove. Grove workers will plant trees in the grove today. After they are done, there will be 21 trees. How many trees did the grove workers plant today?",
+        cot: "Let's think step by step.\n1. There are 15 trees originally.\n2. Then there were 21 trees after planting.\n3. Trees planted = 21 - 15 = 6.\n#### 6",
+        cod: "21 - 15 = 6. #### 6" },
+      { q: "Shawn has five toys. For Christmas, he got two toys each from his mom and dad. How many toys does he have now?",
+        cot: "Let's think step by step.\n1. Shawn started with 5 toys.\n2. He got 2 from mom and 2 from dad = 4 toys.\n3. Total: 5 + 4 = 9 toys.\n#### 9",
+        cod: "2+2=4 new; 5+4=9. #### 9" },
+      { q: "Olivia has $23. She bought five bagels for $3 each. How much money does she have left?",
+        cot: "Let's think step by step.\n1. Olivia starts with $23.\n2. She buys 5 bagels at $3 each: 5 × 3 = $15.\n3. Money left: 23 - 15 = $8.\n#### 8",
+        cod: "5×3=15 spent; 23-15=8. #### 8" }
+    ]
+  },
+  commonsense: {
+    label: "Commonsense", desc: "Dates, sports, world", icon: "◈",
+    examples: [
+      { q: "Jane was born on the last day of February in 2001. Today is her 16-year-old birthday. What is the date yesterday in MM/DD/YYYY?",
+        cot: "Let's think step by step.\n1. Jane was born on 02/28/2001.\n2. Her 16th birthday is 02/28/2017.\n3. Yesterday was 02/27/2017.\n#### 02/27/2017",
+        cod: "Born 02/28/2001; +16y=02/28/2017; yesterday=02/27/2017. #### 02/27/2017" },
+      { q: "The concert was scheduled to be on 06/01/1943, but was delayed by one day to today. What is the date 10 days ago in MM/DD/YYYY?",
+        cot: "Let's think step by step.\n1. Concert delayed from 06/01 by one day → today is 06/02/1943.\n2. 10 days ago: 06/02 - 10 = 05/23/1943.\n#### 05/23/1943",
+        cod: "06/01+1d=06/02/1943; -10d=05/23/1943. #### 05/23/1943" },
+      { q: "Is the following sentence plausible? \"Saquon Barkley scored a bicycle kick goal.\"",
+        cot: "Let's think step by step.\n1. Saquon Barkley is an NFL running back.\n2. Bicycle kicks are a soccer technique.\n3. An NFL player scoring a bicycle kick is not plausible.\n#### No",
+        cod: "Barkley=NFL; bicycle kicks=soccer only. #### No" }
+    ]
+  },
+  symbolic: {
+    label: "Symbolic / Logic", desc: "Coin flips, sequences", icon: "◎",
+    examples: [
+      { q: "A coin is heads up. Ka flips the coin. Sherrie flips the coin. Is the coin still heads up?",
+        cot: "Let's think step by step.\n1. The coin starts heads up.\n2. Ka flips → tails.\n3. Sherrie flips → heads.\nThe coin is heads up.\n#### Yes",
+        cod: "H→Ka:T→Sherrie:H. #### Yes" },
+      { q: "A coin is heads up. Jamey flips the coin. Teressa flips the coin. Noel does not flip the coin. Is the coin still heads up?",
+        cot: "Let's think step by step.\n1. Starts heads up.\n2. Jamey flips → tails.\n3. Teressa flips → heads.\n4. Noel doesn't flip → still heads.\n#### Yes",
+        cod: "H→Jamey:T→Teressa:H→Noel:H. #### Yes" },
+      { q: "A coin is heads up. Maybelle flips the coin. Shalonda does not flip the coin. Jen flips the coin. Is the coin still heads up?",
+        cot: "Let's think step by step.\n1. Starts heads.\n2. Maybelle flips → tails.\n3. Shalonda no flip → tails.\n4. Jen flips → heads.\n#### Yes",
+        cod: "H→Maybelle:T→Shalonda:T→Jen:H. #### Yes" }
+    ]
+  },
+  trading: {
+    label: "Trading", desc: "Position sizing, risk, P&L", icon: "₿",
+    examples: [
+      { q: "Account equity is $50,000. Risk per trade is 2%. Stop loss is $500 per contract. How many contracts should I trade?",
+        cot: "Let's think step by step.\n1. Risk amount = 50,000 × 2% = $1,000.\n2. Each contract risks $500 at the stop.\n3. Number of contracts = 1,000 / 500 = 2.\n#### 2",
+        cod: "50000×0.02=1000 risk$; 1000/500=2 contracts. #### 2" },
+      { q: "A system has 60% win rate, average win $200, average loss $150. What is the expectancy per trade?",
+        cot: "Let's think step by step.\n1. Expected win = 0.6 × $200 = $120.\n2. Expected loss = 0.4 × $150 = $60.\n3. Expectancy = $120 - $60 = $60.\n#### $60",
+        cod: "0.6×200=120; 0.4×150=60; 120-60=60. #### $60" },
+      { q: "Entry at $100, stop at $95, target at $115. What is the risk-reward ratio?",
+        cot: "Let's think step by step.\n1. Risk = entry - stop = 100 - 95 = $5.\n2. Reward = target - entry = 115 - 100 = $15.\n3. Risk:Reward = 15/5 = 3:1.\n#### 3:1",
+        cod: "Risk=100-95=5; Reward=115-100=15; R:R=15/5=3:1. #### 3:1" }
+    ]
+  }
+};
+
+const SYSTEM_COT = "Think step by step to answer the following question. Return the answer at the end of the response after a separator ####.";
+const SYSTEM_COD = "Think step by step, but only keep a minimum draft for each thinking step, with 5 words at most. Return the answer at the end of the response after a separator ####.";
+
+let state = {
+  taskType: "arithmetic",
+  numExamples: 3,
+  generatedPrompt: null,
+  comparing: false,
+  cotResult: null,
+  codResult: null,
+  error: null,
+  expandedExamples: {}
+};
+
+function $(sel) { return document.querySelector(sel); }
+function $$(sel) { return document.querySelectorAll(sel); }
+
+function getTask() { return TASK_TYPES[state.taskType]; }
+function getExamples() { return getTask().examples.slice(0, state.numExamples); }
+function getApiKey() { return $("#api-key")?.value?.trim() || ""; }
+function wordCount(s) { return s.split(/\s+/).filter(Boolean).length; }
+
+function renderTypeGrid() {
+  const grid = $("#type-grid");
+  grid.innerHTML = Object.entries(TASK_TYPES).map(([key, t]) => `
+    <button class="type-btn ${key === state.taskType ? 'active' : ''}" data-type="${key}">
+      <div class="icon">${t.icon}</div>
+      <div class="label">${t.label}</div>
+      <div class="desc">${t.desc}</div>
+    </button>
+  `).join("");
+  grid.querySelectorAll(".type-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      state.taskType = btn.dataset.type;
+      state.numExamples = Math.min(state.numExamples, getTask().examples.length);
+      state.expandedExamples = {};
+      render();
+    });
+  });
+}
+
+function renderExamples() {
+  const sec = $("#examples-section");
+  const task = getTask();
+  const exs = getExamples();
+  sec.innerHTML = `
+    <div class="example-header">
+      <div class="section-label">Few-shot examples</div>
+      <div class="slider-row">
+        <input type="range" min="1" max="${task.examples.length}" value="${state.numExamples}" id="ex-slider">
+        <span>${state.numExamples}</span>
+      </div>
+    </div>
+    ${exs.map((ex, i) => {
+      const expanded = state.expandedExamples[i];
+      return `
+      <div class="example-card">
+        <div class="ex-label">Example ${i + 1}</div>
+        <div class="ex-q">Q: ${ex.q}</div>
+        <button class="toggle-btn" data-idx="${i}">${expanded ? "Hide CoT vs CoD ▴" : "Show CoT vs CoD ▾"}</button>
+        ${expanded ? `
+        <div class="comparison-grid">
+          <div class="comp-box cot">
+            <div class="comp-label">CoT (${wordCount(ex.cot)} words)</div>
+            <pre>${ex.cot}</pre>
+          </div>
+          <div class="comp-box cod">
+            <div class="comp-label">CoD (${wordCount(ex.cod)} words)</div>
+            <pre>${ex.cod}</pre>
+          </div>
+        </div>` : ""}
+      </div>`;
+    }).join("")}
+  `;
+  $("#ex-slider").addEventListener("input", (e) => {
+    state.numExamples = parseInt(e.target.value);
+    renderExamples();
+    updateButtons();
+  });
+  sec.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.idx);
+      state.expandedExamples[idx] = !state.expandedExamples[idx];
+      renderExamples();
+    });
+  });
+}
+
+function updateButtons() {
+  const hasQuery = $("#query").value.trim().length > 0;
+  $("#btn-generate").disabled = !hasQuery;
+  $("#btn-compare").disabled = !hasQuery || state.comparing;
+}
+
+function generatePrompt() {
+  const query = $("#query").value.trim();
+  if (!query) return;
+  const exs = getExamples();
+  const fewShot = exs.map(ex => `Q: ${ex.q}\nA: ${ex.cod}`).join("\n\n");
+  state.generatedPrompt = { system: SYSTEM_COD, fewShot, query };
+  state.cotResult = null;
+  state.codResult = null;
+  state.error = null;
+  renderOutput();
+}
+
+function renderOutput() {
+  const area = $("#output-area");
+  if (!state.generatedPrompt && !state.comparing && !state.cotResult) {
+    area.innerHTML = "";
+    return;
+  }
+
+  let html = "";
+
+  if (state.error) {
+    html += `<div class="error-box">${state.error}</div>`;
+  }
+
+  if (state.generatedPrompt && !state.cotResult) {
+    const p = state.generatedPrompt;
+    const full = `System: ${p.system}\n\n${p.fewShot}\n\nQ: ${p.query}`;
+    html += `
+    <div class="output-section">
+      <div class="output-header">
+        <h2>Generated prompt</h2>
+        <button class="copy-btn" id="copy-btn">Copy</button>
+      </div>
+      <div class="prompt-block"><span class="tag tag-system">System:</span> ${escHtml(p.system)}\n\n<span class="tag tag-examples">Few-shot examples:</span>\n${escHtml(p.fewShot)}\n\n<span class="tag tag-query">Your query:</span>\nQ: ${escHtml(p.query)}</div>
+    </div>`;
+    area.innerHTML = html;
+    $("#copy-btn").addEventListener("click", () => {
+      navigator.clipboard.writeText(full).then(() => {
+        const btn = $("#copy-btn");
+        btn.textContent = "Copied!";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = "Copy"; btn.classList.remove("copied"); }, 1500);
+      });
+    });
+    return;
+  }
+
+  if (state.comparing || state.cotResult || state.codResult) {
+    const cot = state.cotResult;
+    const cod = state.codResult;
+    const savings = (cot && cod) ? Math.round((1 - cod.outputTokens / Math.max(cot.outputTokens, 1)) * 100) : null;
+    const maxTokens = Math.max(cot?.outputTokens || 0, cod?.outputTokens || 0);
+
+    if (savings !== null) {
+      html += `
+      <div class="metrics-grid">
+        <div class="metric"><div class="metric-label">CoT output</div><div class="metric-value" style="color:var(--amber)">${cot.outputTokens}</div></div>
+        <div class="metric"><div class="metric-label">CoD output</div><div class="metric-value" style="color:var(--accent)">${cod.outputTokens}</div></div>
+        <div class="metric savings"><div class="metric-label">Savings</div><div class="metric-value">${savings}%</div></div>
+      </div>
+      <div style="margin-bottom:18px">
+        <div class="bar-row">
+          <div class="bar-label"><span>Chain of Thought</span><span>${cot.outputTokens} tokens</span></div>
+          <div class="bar-track"><div class="bar-fill cot" style="width:${maxTokens > 0 ? (cot.outputTokens / maxTokens * 100) : 0}%"></div></div>
+        </div>
+        <div class="bar-row" style="margin-top:8px">
+          <div class="bar-label"><span>Chain of Draft</span><span>${cod.outputTokens} tokens</span></div>
+          <div class="bar-track"><div class="bar-fill cod" style="width:${maxTokens > 0 ? (cod.outputTokens / maxTokens * 100) : 0}%"></div></div>
+        </div>
+      </div>`;
+    }
+
+    html += `<div class="results-grid">
+      <div class="result-card cot">
+        <div class="result-label">CoT response</div>
+        ${cot ? `<pre>${escHtml(cot.text)}</pre>` : `<div class="loading">${state.comparing ? '<span class="spinner"></span>Processing...' : '—'}</div>`}
+      </div>
+      <div class="result-card cod">
+        <div class="result-label">CoD response</div>
+        ${cod ? `<pre>${escHtml(cod.text)}</pre>` : `<div class="loading">${state.comparing ? '<span class="spinner"></span>Processing...' : '—'}</div>`}
+      </div>
+    </div>`;
+  }
+
+  area.innerHTML = html;
+}
+
+async function runComparison() {
+  const query = $("#query").value.trim();
+  const apiKey = getApiKey();
+  if (!query) return;
+  if (!apiKey) {
+    state.error = "Enter your Anthropic API key above to use live comparison.";
+    renderOutput();
+    const det = $("#api-section");
+    det.open = true;
+    $("#api-key").focus();
+    return;
+  }
+
+  state.comparing = true;
+  state.cotResult = null;
+  state.codResult = null;
+  state.error = null;
+  state.generatedPrompt = null;
+  updateButtons();
+  renderOutput();
+
+  const exs = getExamples();
+  const fewShotMessages = exs.flatMap(ex => [
+    { role: "user", content: `Q: ${ex.q}` },
+    { role: "assistant", content: `A: ${ex.cot}` }
+  ]);
+  const fewShotMessagesCod = exs.flatMap(ex => [
+    { role: "user", content: `Q: ${ex.q}` },
+    { role: "assistant", content: `A: ${ex.cod}` }
+  ]);
+
+  const callApi = async (system, messages) => {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+        "anthropic-dangerous-direct-browser-access": "true"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1024,
+        system,
+        messages: [...messages, { role: "user", content: `Q: ${query}` }]
+      })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+    return res.json();
+  };
+
+  try {
+    const [cotData, codData] = await Promise.all([
+      callApi(SYSTEM_COT, fewShotMessages),
+      callApi(SYSTEM_COD, fewShotMessagesCod)
+    ]);
+
+    if (cotData.content) {
+      state.cotResult = {
+        text: cotData.content.map(c => c.text || "").join(""),
+        inputTokens: cotData.usage?.input_tokens || 0,
+        outputTokens: cotData.usage?.output_tokens || 0
+      };
+    }
+    if (codData.content) {
+      state.codResult = {
+        text: codData.content.map(c => c.text || "").join(""),
+        inputTokens: codData.usage?.input_tokens || 0,
+        outputTokens: codData.usage?.output_tokens || 0
+      };
+    }
+  } catch (e) {
+    state.error = "API error: " + e.message;
+  }
+
+  state.comparing = false;
+  updateButtons();
+  renderOutput();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function render() {
+  renderTypeGrid();
+  renderExamples();
+  updateButtons();
+  renderOutput();
+}
+
+// Restore API key
+const savedKey = localStorage.getItem("cod_api_key");
+
+document.addEventListener("DOMContentLoaded", () => {
+  render();
+  if (savedKey) $("#api-key").value = savedKey;
+
+  $("#query").addEventListener("input", updateButtons);
+  $("#btn-generate").addEventListener("click", generatePrompt);
+  $("#btn-compare").addEventListener("click", runComparison);
+  $("#api-key")?.addEventListener("change", () => {
+    localStorage.setItem("cod_api_key", getApiKey());
+  });
+});
+</script>
+</body>
+</html>
