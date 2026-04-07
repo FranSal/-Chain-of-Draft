@@ -133,7 +133,7 @@ See [`references/template.md`](chain-of-draft/references/template.md) for a step
 
 ## References
 
-- Xu, S., Xie, W., Zhao, L., & He, P. (2025). *Chain of Draft: Thinking Faster by Writing Less*. [arXiv:2502.18600](https://arxiv.org/abs/2502.18600)
+- Xu, S., Xie, W., Zhao, L., & He, P. (2025). *Chain of Draft: Thinking Faster by Writing Less*. [arXiv:2502.18600](https://arxiv.org/abs/2502.18600) — [PDF](https://arxiv.org/pdf/2502.18600)
 - Wei, J., et al. (2022). *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models*. NeurIPS 2022.
 - Original code: [github.com/sileix/chain-of-draft](https://github.com/sileix/chain-of-draft)
 
